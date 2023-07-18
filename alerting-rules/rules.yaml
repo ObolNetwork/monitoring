@@ -1,5 +1,5 @@
 groups:
-- name: alpha_cluster_rules
+- name: cluster_rules
   rules:
 
   - alert: AlphaClusterBeaconNodeDown
@@ -12,7 +12,6 @@ groups:
       operator: alpha-m1-cluster
     annotations:
       summary: 'Beacon node is down for {{$labels.cluster_peer}} in cluster {{$labels.cluster_name}}'
-      runbook_url: 'https://www.notion.so/obol-dvt/Observability-Runbooks-ad62d17b9f10407999fcc47f35775f74?pvs=4'
 
   - alert: AlphaClusterBeaconNodeSyncing
     expr: max((app_monitoring_readyz{cluster_hash="1c17ca2",cluster_name="{{$labels.cluster_name}}"}[$__rate_interval])) by (cluster_name, cluster_hash) == 3
@@ -135,7 +134,6 @@ groups:
       severity: warning
     annotations:
       summary: VC missing some validators for node {{$labels.cluster_peer}} in cluster {{$labels.cluster_name}}
-      runbook_url: 'https://www.notion.so/obol-dvt/Observability-Runbooks-ad62d17b9f10407999fcc47f35775f74?pvs=4'
 
 
   - alert: AlphaClusterHighPctFailedSyncMsgDuty
@@ -148,7 +146,6 @@ groups:
       severity: warning
     annotations:
       summary: High percentage failed sync message duty for node {{$labels}}
-      runbook_url: 'https://www.notion.so/obol-dvt/Observability-Runbooks-ad62d17b9f10407999fcc47f35775f74?pvs=4'
 
 
   - alert: AlphaClusterHighPctFailedSyncMsgDuty
@@ -161,7 +158,6 @@ groups:
       severity: warning
     annotations:
       summary: High percentage failed sync message duty for node {{$labelsContinuing}}
-      runbook_url: 'https://www.notion.so/obol-dvt/Observability-Runbooks-ad62d17b9f10407999fcc47f35775f74?pvs=4'
 
       
   - alert: AlphaClusterNumConnectedRelays
@@ -171,7 +167,6 @@ groups:
       operator: alpha-m1-cluster
     annotations:
       summary: Alpha Cluster has no Connected Relays
-      runbook_url: 'https://www.notion.so/obol-dvt/Observability-Runbooks-ad62d17b9f10407999fcc47f35775f74?pvs=4'
 
   - alert: PeerPingLatency
     expr: 'histogram_quantile(0.90, sum(rate(p2p_ping_latency_secs_bucket{cluster_name="{{$labels.cluster_name}}",cluster_hash="1c17ca2",cluster_peer!=""}[2m])) by (le,peer))'
