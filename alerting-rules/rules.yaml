@@ -2,19 +2,19 @@ groups:
 - name: cluster_rules
   rules:
 
-  - alert: AlphaClusterBeaconNodeDown
-    expr: max((app_monitoring_readyz{cluster_name=~"Alpha {{$labels.cluster_name}}", cluster_hash="1c17ca2"}[$__rate_interval])) by (cluster_name, cluster_hash, cluster_peer) == 2
+  - alert: ClusterBeaconNodeDown
+    expr: max((app_monitoring_readyz{cluster_name=~"{{$labels.cluster_name}}"}[$__rate_interval])) by (cluster_name, cluster_hash, cluster_peer) == 2
     for: 15m
     labels:
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_name: '{{$labels.cluster_name}}'
       cluster_peer: '{{$labels.cluster_peer}}'
-      operator: alpha-m1-cluster
+      operator: ""
     annotations:
       summary: 'Beacon node is down for {{$labels.cluster_peer}} in cluster {{$labels.cluster_name}}'
 
-  - alert: AlphaClusterBeaconNodeSyncing
-    expr: max((app_monitoring_readyz{cluster_hash="1c17ca2",cluster_name="{{$labels.cluster_name}}"}[$__rate_interval])) by (cluster_name, cluster_hash) == 3
+  - alert: ClusterBeaconNodeSyncing
+    expr: max((app_monitoring_readyz{cluster_name="{{$labels.cluster_name}}"}[$__rate_interval])) by (cluster_name, cluster_hash) == 3
     for: 15m
     labels:
       cluster_hash: '{{$labels.cluster_hash}}'
@@ -24,119 +24,119 @@ groups:
     annotations:
       summary: 'Beacon node is syncing for node {{$labels.cluster_peer}} in {{$labels.cluster_name}}'
 
-  - alert: AlphaClusterNodeDown
+  - alert: ClusterNodeDown
     expr: app_monitoring_readyz{cluster_name=~"{{$labels.cluster_name}}"} != 1
     for: 15m
     labels:
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_name: '{{$labels.cluster_name}}'
       cluster_peer: '{{$labels.cluster_peer}}'
-      operator: alpha-m1-cluster
+      operator: ""
       severity: notify
     annotations:
-      summary: 'Alpha Cluster Node is Down'
+      summary: ' Cluster Node is Down'
 
-  - alert: AlphaClusterMissedAttestations
-    expr: max(increase(core_tracker_failed_duties_total{duty="attester",cluster_name="{{$labels.cluster_name}}", cluster_hash="1c17ca2"}[$__rate_interval])) by (cluster_hash, cluster_name) > 0
+  - alert: ClusterMissedAttestations
+    expr: max(increase(core_tracker_failed_duties_total{duty="attester",cluster_name="{{$labels.cluster_name}}"}[$__rate_interval])) by (cluster_hash, cluster_name) > 0
     for: 5m
     labels:
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_name: '{{$labels.cluster_name}}'
-      operator: alpha-m1-cluster
+      operator: ""
       severity: notify
     annotations:
-      summary: 'Missed attestations in Alpha cluster {{$labels.cluster_name}}'
+      summary: 'Missed attestations in  cluster {{$labels.cluster_name}}'
 
-  - alert: AlphaClusterFailureRate
+  - alert: ClusterFailureRate
     annotations:
       message: 'Cluster {{$labels.cluster_name}} failure rate is greater than {{$values.B}}%'
-    expr: 'floor(100 * max(increase(core_tracker_failed_duties_total{cluster_name="{{$labels.cluster_name}}", cluster_hash="1c17ca2"}[1m])) by (cluster_name, cluster_hash) / max(increase(core_scheduler_duty_total{cluster_name="{{$labels.cluster_name}}", cluster_hash="1c17ca2"}[1m])) by (cluster_name, cluster_hash)) > 5'
+    expr: 'floor(100 * max(increase(core_tracker_failed_duties_total{cluster_name="{{$labels.cluster_name}}"}[1m])) by (cluster_name, cluster_hash) / max(increase(core_scheduler_duty_total{cluster_name="{{$labels.cluster_name}}"}[1m])) by (cluster_name, cluster_hash)) > 5'
     for: 6h
     labels:
-      operator: alpha-m1-cluster
+      operator: ""
       cluster_name: '{{$labels.cluster_name}}'
       cluster_hash: '{{$labels.cluster_hash}}'
       severity: notify
 
-  - alert: AlphaClusterVCMissingValidators
+  - alert: ClusterVCMissingValidators
     annotations:
       message: 'VC missing some validators for node {{$labels.cluster_peer}} in cluster {{$labels.cluster_name}}'
-    expr: 'max((app_monitoring_readyz{cluster_name="{{$labels.cluster_name}}", cluster_hash="1c17ca2", cluster_peer!=""}[1m])) by (cluster_name, cluster_hash, cluster_peer) == 6'
+    expr: 'max((app_monitoring_readyz{cluster_name="{{$labels.cluster_name}}", cluster_peer!=""}[1m])) by (cluster_name, cluster_hash, cluster_peer) == 6'
     for: 15m
     labels:
-      operator: alpha-m1-cluster
+      operator: ""
       cluster_name: '{{$labels.cluster_name}}'
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_peer: '{{$labels.cluster_peer}}'
       severity: warning
 
-  - alert: AlphaClusterHighPctFailedSyncMsgDuty
+  - alert: ClusterHighPctFailedSyncMsgDuty
     annotations:
       message: 'High percentage failed sync message duty for node {{$labels.cluster_peer}} in cluster {{$labels.cluster_name}}'
     expr: "(\n    sum(increase(core_tracker_failed_duties_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer)\n) \n/ \n(\n    sum(increase(core_tracker_failed_duties_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer) \n    + \n    sum(increase(core_bcast_broadcast_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer) \n) > 0.1"
     for: 5m
     labels:
-      operator: alpha-m1-cluster
+      operator: ""
       cluster_name: '{{$labels.cluster_name}}'
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_peer: '{{$labels.cluster_peer}}'
       severity: warning
 
-  - alert: AlphaClusterNumConnectedRelays
+  - alert: ClusterNumConnectedRelays
     annotations:
-      message: 'Alpha Cluster has no Connected Relays'
+      message: ' Cluster has no Connected Relays'
     expr: 'sum(p2p_relay_connections{cluster_name="{{$labels.cluster_name}}"}) by (peer) > 0 '
     for: 5m
     labels:
-      operator: alpha-m1-cluster
+      operator: ""
 
   - alert: PeerPingLatency
     annotations:
       message: 'Peer ping latency is greater than 500ms'
-    expr: 'histogram_quantile(0.90, sum(rate(p2p_ping_latency_secs_bucket{cluster_name="{{$labels.cluster_name}}",cluster_hash="1c17ca2",cluster_peer!=""}[2m])) by (le,peer))'
+    expr: 'histogram_quantile(0.90, sum(rate(p2p_ping_latency_secs_bucket{cluster_name="{{$labels.cluster_name}}",cluster_peer!=""}[2m])) by (le,peer))'
     for: 5m
     labels:
-      operator: alpha-m1-cluster
+      operator: ""
 
-    # Alpha Cluster Insufficient Peers
-  - alert: AlphaClusterInsufficientPeers
-    expr: 'max((app_monitoring_readyz{cluster_hash="1c17ca2",cluster_name="{{$labels.cluster_name}}",cluster_peer!=""}[1m])) by (cluster_name,cluster_hash,cluster_peer) == 4'
+    #  Cluster Insufficient Peers
+  - alert: ClusterInsufficientPeers
+    expr: 'max((app_monitoring_readyz{cluster_name="{{$labels.cluster_name}}",cluster_peer!=""}[1m])) by (cluster_name,cluster_hash,cluster_peer) == 4'
     for: 10m
     labels:
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_name: '{{$labels.cluster_name}}'
       cluster_peer: '{{$labels.cluster_peer}}'
-      operator: alpha-m1-cluster
+      operator: ""
       severity: warning
     annotations:
       summary: Insufficient Peers for node {{$labels.cluster_peer}} in cluster {{$labels.cluster_name}}
       
-  # Alpha Cluster Failure Rate
-  - alert: AlphaClusterFailureRate
-    expr: 'floor(100 * max(increase(core_tracker_failed_duties_total{cluster_hash!="",cluster_name="{{$labels.cluster_name}}"}[1h])) by (cluster_hash, cluster_name) / max(increase(core_scheduler_duty_total{cluster_hash="1c17ca2",cluster_name="{{$labels.cluster_name}}"}[1h])) by (cluster_hash, cluster_name)) > 5'
+  #  Cluster Failure Rate
+  - alert: ClusterFailureRate
+    expr: 'floor(100 * max(increase(core_tracker_failed_duties_total{cluster_hash!="",cluster_name="{{$labels.cluster_name}}"}[1h])) by (cluster_hash, cluster_name) / max(increase(core_scheduler_duty_total{cluster_name="{{$labels.cluster_name}}"}[1h])) by (cluster_hash, cluster_name)) > 5'
     for: 6h
     labels:
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_name: '{{$labels.cluster_name}}'
-      operator: alpha-m1-cluster
+      operator: ""
       severity: notify
     annotations:
       summary: Cluster {{$labels.cluster_name}} failure rate is greater than {{$values.B}}%
   
-  - alert: AlphaClusterVCMissingValidators
-    expr: 'max((app_monitoring_readyz{cluster_hash="1c17ca2",cluster_name="{{$labels.cluster_name}}", cluster_peer!=""}[1m])) by (cluster_name, cluster_hash, cluster_peer) == 6'
+  - alert: ClusterVCMissingValidators
+    expr: 'max((app_monitoring_readyz{cluster_name="{{$labels.cluster_name}}", cluster_peer!=""}[1m])) by (cluster_name, cluster_hash, cluster_peer) == 6'
     for: 15m
     labels:
       cluster_hash: '{{$labels.cluster_hash}}'
       cluster_name: '{{$labels.cluster_name}}'
       cluster_peer: '{{$labels.cluster_peer}}'
-      operator: alpha-m1-cluster
+      operator: ""
       severity: warning
     annotations:
       summary: VC missing some validators for node {{$labels.cluster_peer}} in cluster {{$labels.cluster_name}}
 
 
-  - alert: AlphaClusterHighPctFailedSyncMsgDuty
+  - alert: ClusterHighPctFailedSyncMsgDuty
     expr: "(\n sum(increase(core_tracker_failed_duties_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer)\n) \n/ \n(\n    sum(increase(core_tracker_failed_duties_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer) \n    + \n    sum(increase(core_bcast_broadcast_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer) \n) > 0.1"
     for: 5m
     labels:
@@ -148,7 +148,7 @@ groups:
       summary: High percentage failed sync message duty for node {{$labels}}
 
 
-  - alert: AlphaClusterHighPctFailedSyncMsgDuty
+  - alert: ClusterHighPctFailedSyncMsgDuty
     expr: "(\n    sum(increase(core_tracker_failed_duties_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer)\n) \n/ \n(\n    sum(increase(core_tracker_failed_duties_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer) \n    + \n    sum(increase(core_bcast_broadcast_total{duty=\"sync_message\",cluster_name=\"{{$labels.cluster_name}}\", cluster_hash=\"1c17ca2\"}[1h])) by (cluster_name,cluster_hash,cluster_peer) \n) > 0.1"
     for: 5m
     labels:
@@ -160,19 +160,18 @@ groups:
       summary: High percentage failed sync message duty for node {{$labelsContinuing}}
 
       
-  - alert: AlphaClusterNumConnectedRelays
+  - alert: ClusterNumConnectedRelays
     expr: 'sum(p2p_relay_connections{cluster_name="{{$labels.cluster_name}}"}) by (peer) > 0 '
     for: 5m
     labels:
-      operator: alpha-m1-cluster
+      operator: ""
     annotations:
-      summary: Alpha Cluster has no Connected Relays
+      summary:  Cluster has no Connected Relays
 
   - alert: PeerPingLatency
-    expr: 'histogram_quantile(0.90, sum(rate(p2p_ping_latency_secs_bucket{cluster_name="{{$labels.cluster_name}}",cluster_hash="1c17ca2",cluster_peer!=""}[2m])) by (le,peer))'
+    expr: 'histogram_quantile(0.90, sum(rate(p2p_ping_latency_secs_bucket{cluster_name="{{$labels.cluster_name}}",cluster_peer!=""}[2m])) by (le,peer))'
     for: 5m
     labels:
-      operator: alpha-m1-cluster
+      operator: ""
     annotations:
       summary: Peer ping latency is greater than 500ms
-      runbook_url: 'https://www.notion.so/obol-dvt/Observability-Runbooks-ad62d17b9f10407999fcc47f35775f74?pvs=4'
